@@ -112,8 +112,8 @@ class BaseModel(ABC):
         )
         return log_loss(targets, preds, labels=[0, 1, 2])
 
-    def fit(self, data, targets, val_data=None, val_targets=None):
-        for i in range(5):
+    def fit(self, epochs, data, targets, val_data=None, val_targets=None):
+        for i in range(epochs):
             print(f"Epoch {i+1}", end=" ")
             gradient = self.gradient(data, targets)
             self.parameters -= self.learning_rate * gradient
