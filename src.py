@@ -47,21 +47,23 @@ def measure_circuit(qc: QuantumCircuit, shots: int = 1000, qbits: list | None = 
 # Circuits
 def Custom_UnitaryGate1(parameters):
     qc = QuantumCircuit(2)
-    qc.cx(0,1)
+    qc.cx(0, 1)
     qc.rz(parameters[0], 1)
     qc.ry(parameters[1], 0)
-    qc.cx(0,1)
+    qc.cx(0, 1)
     return qc.to_gate(label="U1")
+
 
 def Custom_UnitaryGate2(parameters):
     qc = QuantumCircuit(2)
-    qc.cx(0,1)
+    qc.cx(0, 1)
     qc.rx(parameters[0], 1)
     qc.rx(parameters[1], 0)
     qc.rz(parameters[2], 0)
     qc.rz(parameters[3], 1)
-    qc.cx(0,1)
+    qc.cx(0, 1)
     return qc.to_gate(label="U2")
+
 
 def Custom_UnitaryGateV(parameters):
     qc = QuantumCircuit(1)
@@ -70,32 +72,38 @@ def Custom_UnitaryGateV(parameters):
     qc.rz(parameters[2], 0)
     return qc.to_gate(label="V")
 
+
 def circuit1(features, parameters):
     qc_1 = QuantumCircuit(4, 4)
     for i in range(4):
         qc_1.rx(qubit=i, theta=features[i])
     qc_1.barrier()
 
-    #qc_1_unitary_V2 = UnitaryGate([[1,0], [0,1]])
+    # qc_1_unitary_V2 = UnitaryGate([[1,0], [0,1]])
     params = [Parameter(f"{i}") for i in range(9)]
-    qc_1.append(Custom_UnitaryGate1([params[0], params[1]]), [3,2])
-    qc_1.append(Custom_UnitaryGate1([params[0], params[1]]), [1,0])
+    qc_1.append(Custom_UnitaryGate1([params[0], params[1]]), [3, 2])
+    qc_1.append(Custom_UnitaryGate1([params[0], params[1]]), [1, 0])
     qc_1.barrier()
 
     qc_1.measure(qubit=2, cbit=2)
-    qc_1.append(Custom_UnitaryGateV([params[2], params[3], params[4]]).control(1), [2,3])
+    qc_1.append(
+        Custom_UnitaryGateV([params[2], params[3], params[4]]).control(1), [2, 3]
+    )
 
     qc_1.measure(qubit=0, cbit=0)
-    qc_1.append(Custom_UnitaryGateV([params[2], params[3], params[4]]).control(1), [0,1])
-    
+    qc_1.append(
+        Custom_UnitaryGateV([params[2], params[3], params[4]]).control(1), [0, 1]
+    )
+
     qc_1.barrier()
-    qc_1.append(Custom_UnitaryGate2([params[5], params[6], params[7], params[8]]), [3,1])
+    qc_1.append(
+        Custom_UnitaryGate2([params[5], params[6], params[7], params[8]]), [3, 1]
+    )
     qc_1.measure(qubit=1, cbit=1)
     qc_1.measure(qubit=3, cbit=3)
 
     qc_1 = qc_1.assign_parameters(parameters)
     return qc_1
-
 
 
 def circuit2(features, trainable_parameters, layers=2):
@@ -124,6 +132,7 @@ class BaseModel(ABC):
     """
     Base model for QNNs
     """
+
     @abstractmethod
     def __init__(
         self,
@@ -164,8 +173,8 @@ class BaseModel(ABC):
         )
         return log_loss(targets, preds, labels=[0, 1, 2])
 
-    def fit(self, data, targets, val_data=None, val_targets=None):
-        for i in range(5):
+    def fit(self, epochs, data, targets, val_data=None, val_targets=None):
+        for i in range(epochs):
             print(f"Epoch {i+1}", end=" ")
             gradient = self.gradient(data, targets)
             self.parameters -= self.learning_rate * gradient
@@ -207,10 +216,28 @@ class BaseModel(ABC):
         )
 
 
+class Model1(BaseModel):
+    """
+    Model for convolutional neral network
+    """
+
+    def __init__(
+        self,
+        learning_rate=0.01,
+        prediction_shots=1000,
+        gradient_shots=100,
+        epsilon=1,
+    ):
+        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon)
+        self.parameters = np.random.uniform(low=0, high=np.pi, size=9)
+        self.circuit_func = circuit1
+
+
 class Model2(BaseModel):
     """
     Model for real amplitudes
     """
+
     def __init__(
         self,
         layers=2,
@@ -223,18 +250,3 @@ class Model2(BaseModel):
         self.parameters = np.random.uniform(low=0, high=np.pi, size=(layers * 4,))
         self.circuit_func = circuit2
         self.circuit_params = [layers]
-
-class Model1(BaseModel):
-    """
-    Model for convolutional neral network
-    """
-    def __init__(
-        self,
-        learning_rate=0.01,
-        prediction_shots=1000,
-        gradient_shots=100,
-        epsilon=1,
-    ):
-        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon)
-        self.parameters = np.random.uniform(low=0, high=np.pi, size=9)
-        self.circuit_func = circuit1
