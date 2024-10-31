@@ -14,34 +14,15 @@ def output_mapping(binary_counts, n_classes):
     """
     Maps binary count output to n classes
     """
-    mapping = {}
-    class_preds = defaultdict(int)
-    for binary in binary_counts:
-        b_number = int(binary, base=2)
-        c = b_number % n_classes
-        mapping.update({binary: c})
-
+    class_preds = defaultdict(int, {i: 0 for i in range(n_classes)})
     for binary, count in binary_counts.items():
-        class_preds[mapping[binary]] += count
-
-    for i in range(n_classes):
-        if i not in class_preds:
-            class_preds[i] = 0
+        c = int(binary, base=2) % n_classes
+        class_preds[c] += count
 
     return class_preds
 
 
 BACKEND = AerSimulator()
-
-
-def measure_circuit(qc: QuantumCircuit, shots: int = 1000, qbits: list | None = None):
-    pm = generate_preset_pass_manager(backend=BACKEND, optimization_level=1)
-    isa_circuit = pm.run(qc)
-    result = BACKEND.run(isa_circuit, shots=shots).result()
-    if qbits is not None:
-        return marginal_counts(result, qbits).get_counts()
-    else:
-        return result.get_counts()
 
 
 # Circuits
@@ -134,12 +115,11 @@ def circuit3(features, trainable_parameters, layers):
 
     # Step 1: Feature Encoding
     for i in range(input_size):
-        qc.h(
-            i
-        )  # Legger til en Hadamard-port på hver qubit, som gir en superposisjonstilstand.
-        qc.rz(
-            features[i], i
-        )  # RZ-porten er en av flere mulige porter vi kan bruke for encoding. Merk, kan bruke (RX, RY eller RZ).
+        # Legger til en Hadamard-port på hver qubit, som gir en superposisjonstilstand.
+        qc.h(i)
+        # RZ-porten er en av flere mulige porter vi kan bruke for encoding.
+        # Merk, kan bruke (RX, RY eller RZ).
+        qc.rz(features[i], i)
     qc.barrier()
 
     # Step 2: Variational Layers
@@ -147,9 +127,9 @@ def circuit3(features, trainable_parameters, layers):
         for j in range(input_size):
             qc.rx(Parameter(f"theta{i}{j}"), j)  # Justerbar RX-rotasjon på hver qubit.
             qc.ry(Parameter(f"phi{i}{j}"), j)  # Legger til en justerbar RY-rotasjon.
-        for j in range(
-            0, input_size - 1, 2
-        ):  # For å skape entanglement, legger vi til CX-porter mellom hvert par av qubits.
+
+        # For å skape entanglement, legger vi til CX-porter mellom hvert par av qubits.
+        for j in range(0, input_size - 1, 2):
             qc.cx(j, j + 1)
         qc.barrier()
 
@@ -180,28 +160,54 @@ class BaseModel(ABC):
         self.val_loss = []
         self.epsilon = epsilon
 
+        self.pass_manager = generate_preset_pass_manager(
+            backend=BACKEND, optimization_level=1
+        )
+
         self.circuit_params = []
         self.parameters: np.ndarray = NotImplementedType
         self.circuit_func = NotImplementedType
 
+    def measure_circuit(
+        self, qc: QuantumCircuit, shots: int = 1000, qbits: list | None = None
+    ):
+        isa_circuit = self.pass_manager.run(qc)
+        result = BACKEND.run(isa_circuit, shots=shots).result()
+        if qbits is not None:
+            return marginal_counts(result, qbits).get_counts()
+        else:
+            return result.get_counts()
+
     def gradient(self, data, targets):
-        gradients = []
-        for i in range(len(self.parameters)):
-            p1 = self.parameters.copy()
-            p1[i] += self.epsilon
-            p2 = self.parameters.copy()
-            p2[i] -= self.epsilon
-            loss1 = self._loss(data, targets, self.gradient_shots, p1)
-            loss2 = self._loss(data, targets, self.gradient_shots, p2)
-            partial = (loss1 - loss2) / 2 * self.epsilon
-            gradients.append(partial)
-        return np.array(gradients)
+        size = len(self.parameters)
+        params_plus = np.broadcast_to(
+            self.parameters, (size, size)
+        ) + self.epsilon * np.eye(size)
+        params_minus = np.broadcast_to(
+            self.parameters, (size, size)
+        ) - self.epsilon * np.eye(size)
+        losses_plus = np.array(
+            [
+                self._loss(data, targets, self.gradient_shots, params)
+                for params in params_plus
+            ]
+        )
+        losses_minus = np.array(
+            [
+                self._loss(data, targets, self.gradient_shots, params)
+                for params in params_minus
+            ]
+        )
+        return (losses_plus - losses_minus) / (2 * self.epsilon)
 
     def _loss(self, data, targets, shots, parameters=None):
         if parameters is None:
             parameters = self.parameters
         preds = np.array(
-            [self._predict_proba(x, shots=shots, parameters=parameters) for x in data]
+            [
+                self._predict(x, shots=shots, parameters=parameters, probabilities=True)
+                for x in data
+            ]
         )
         return log_loss(targets, preds, labels=[0, 1, 2])
 
@@ -222,29 +228,30 @@ class BaseModel(ABC):
                 print(f"Validation loss: {val_loss}")
         return self
 
-    def _predict(self, x, shots=1000):
-        circuit = self.circuit_func(x, self.parameters, *self.circuit_params)
-        results = measure_circuit(circuit, shots)
-        class_output = output_mapping(results, 3)
-        prediction = max(class_output, key=lambda x: class_output[x])
-        return prediction
-
-    def predict(self, X):
-        return np.array([self._predict(x, shots=self.prediction_shots) for x in X])
-
-    def _predict_proba(self, x, shots=100, parameters=None):
+    def _predict(self, x, shots=1000, parameters=None, probabilities=False):
         if parameters is None:
             parameters = self.parameters
 
         circuit = self.circuit_func(x, parameters, *self.circuit_params)
-        results = measure_circuit(circuit, shots)
-        class_output = sorted(output_mapping(results, 3).items())
-        probs = np.array([n / shots for _, n in class_output])
-        return probs
+        results = self.measure_circuit(circuit, shots)
+        class_output = output_mapping(results, 3)
+        if probabilities:
+            class_output = sorted(output_mapping(results, 3).items())
+            prediction = np.array([n / shots for _, n in class_output])
+            return prediction
+        else:
+            prediction = max(class_output, key=lambda x: class_output[x])
+            return prediction
+
+    def predict(self, X):
+        return np.array([self._predict(x, shots=self.prediction_shots) for x in X])
 
     def predict_proba(self, X):
         return np.array(
-            [self._predict_proba(x, shots=self.prediction_shots) for x in X]
+            [
+                self._predict(x, shots=self.prediction_shots, probabilities=True)
+                for x in X
+            ]
         )
 
 
