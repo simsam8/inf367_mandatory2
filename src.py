@@ -128,6 +128,38 @@ def circuit2(features, trainable_parameters, layers=2):
     return qc
 
 
+def circuit3(features, trainable_parameters, layers):
+    input_size = len(features)
+    qc = QuantumCircuit(input_size)
+
+    # Step 1: Feature Encoding
+    for i in range(input_size):
+        qc.h(
+            i
+        )  # Legger til en Hadamard-port på hver qubit, som gir en superposisjonstilstand.
+        qc.rz(
+            features[i], i
+        )  # RZ-porten er en av flere mulige porter vi kan bruke for encoding. Merk, kan bruke (RX, RY eller RZ).
+    qc.barrier()
+
+    # Step 2: Variational Layers
+    for i in range(layers):
+        for j in range(input_size):
+            qc.rx(Parameter(f"theta{i}{j}"), j)  # Justerbar RX-rotasjon på hver qubit.
+            qc.ry(Parameter(f"phi{i}{j}"), j)  # Legger til en justerbar RY-rotasjon.
+        for j in range(
+            0, input_size - 1, 2
+        ):  # For å skape entanglement, legger vi til CX-porter mellom hvert par av qubits.
+            qc.cx(j, j + 1)
+        qc.barrier()
+
+    # Step 3: Parameter Binding and Measurement
+    qc = qc.assign_parameters(trainable_parameters)
+    qc.measure_all()
+
+    return qc
+
+
 class BaseModel(ABC):
     """
     Base model for QNNs
@@ -249,4 +281,23 @@ class Model2(BaseModel):
         super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon)
         self.parameters = np.random.uniform(low=0, high=np.pi, size=(layers * 4,))
         self.circuit_func = circuit2
+        self.circuit_params = [layers]
+
+
+class Model3(BaseModel):
+    """
+    Model for real amplitudes
+    """
+
+    def __init__(
+        self,
+        layers=4,
+        learning_rate=0.01,
+        prediction_shots=1000,
+        gradient_shots=100,
+        epsilon=1,
+    ):
+        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon)
+        self.parameters = np.random.uniform(low=0, high=np.pi, size=(layers * 4,))
+        self.circuit_func = circuit3
         self.circuit_params = [layers]
