@@ -23,6 +23,11 @@ Choice of QNN
     - Convolution Neural Network
 
 
+Underway results:
+- Convolution Neural Network
+    - good inital result, 100% accuracy on type 0, 1 but only 40% on 2
+    - tried to change some gets from rx to rz or ry, reduced the accuracy heavly, but seemed that the learning ended to early
+
 
 What we learned:
 
