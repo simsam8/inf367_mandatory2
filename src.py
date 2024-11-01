@@ -54,7 +54,7 @@ def Custom_UnitaryGateV(parameters):
     return qc.to_gate(label="V")
 
 
-def circuit1(features, parameters):
+def circuit1(features, parameters=None):
     qc_1 = QuantumCircuit(4, 4)
     for i in range(4):
         qc_1.rx(qubit=i, theta=features[i])
@@ -83,11 +83,12 @@ def circuit1(features, parameters):
     qc_1.measure(qubit=1, cbit=1)
     qc_1.measure(qubit=3, cbit=3)
 
-    qc_1 = qc_1.assign_parameters(parameters)
+    if parameters is not None:
+        qc_1 = qc_1.assign_parameters(parameters)
     return qc_1
 
 
-def circuit2(features, trainable_parameters, layers=2):
+def circuit2(features, trainable_parameters=None, layers=2):
     """
     Circuit implementing real amplitudes
     """
@@ -104,12 +105,13 @@ def circuit2(features, trainable_parameters, layers=2):
             qc.cx(j, j - 1)
         qc.barrier()
 
-    qc = qc.assign_parameters(trainable_parameters)
+    if trainable_parameters is not None:
+        qc = qc.assign_parameters(trainable_parameters)
     qc.measure_all()
     return qc
 
 
-def circuit3(features, trainable_parameters, layers):
+def circuit3(features, trainable_parameters=None, layers=2):
     input_size = len(features)
     qc = QuantumCircuit(input_size)
 
@@ -134,7 +136,8 @@ def circuit3(features, trainable_parameters, layers):
         qc.barrier()
 
     # Step 3: Parameter Binding and Measurement
-    qc = qc.assign_parameters(trainable_parameters)
+    if trainable_parameters is not None:
+        qc = qc.assign_parameters(trainable_parameters)
     qc.measure_all()
 
     return qc
@@ -308,7 +311,7 @@ class Model3(BaseModel):
         prediction_shots=1000,
         gradient_shots=100,
         epsilon=1,
-        seed=None
+        seed=None,
     ):
         super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon, seed)
         self.parameters = np.random.uniform(low=0, high=np.pi, size=(2 * layers * 4,))
