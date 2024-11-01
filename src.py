@@ -152,6 +152,7 @@ class BaseModel(ABC):
         prediction_shots=1000,
         gradient_shots=100,
         epsilon=1,
+        seed=None,
     ):
         self.learning_rate = learning_rate
         self.gradient_shots = gradient_shots
@@ -159,6 +160,7 @@ class BaseModel(ABC):
         self.train_loss = []
         self.val_loss = []
         self.epsilon = epsilon
+        self.seed = seed
 
         self.pass_manager = generate_preset_pass_manager(
             backend=BACKEND, optimization_level=1
@@ -167,6 +169,7 @@ class BaseModel(ABC):
         self.circuit_params = []
         self.parameters: np.ndarray = NotImplementedType
         self.circuit_func = NotImplementedType
+        np.random.seed(seed)
 
     def measure_circuit(
         self, qc: QuantumCircuit, shots: int = 1000, qbits: list | None = None
@@ -266,8 +269,9 @@ class Model1(BaseModel):
         prediction_shots=1000,
         gradient_shots=100,
         epsilon=1,
+        seed=None,
     ):
-        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon)
+        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon, seed)
         self.parameters = np.random.uniform(low=0, high=np.pi, size=9)
         self.circuit_func = circuit1
 
@@ -284,8 +288,9 @@ class Model2(BaseModel):
         prediction_shots=1000,
         gradient_shots=100,
         epsilon=1,
+        seed=None,
     ):
-        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon)
+        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon, seed)
         self.parameters = np.random.uniform(low=0, high=np.pi, size=(layers * 4,))
         self.circuit_func = circuit2
         self.circuit_params = [layers]
@@ -303,8 +308,9 @@ class Model3(BaseModel):
         prediction_shots=1000,
         gradient_shots=100,
         epsilon=1,
+        seed=None
     ):
-        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon)
-        self.parameters = np.random.uniform(low=0, high=np.pi, size=(layers * 4,))
+        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon, seed)
+        self.parameters = np.random.uniform(low=0, high=np.pi, size=(2 * layers * 4,))
         self.circuit_func = circuit3
         self.circuit_params = [layers]
