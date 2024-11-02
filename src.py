@@ -159,6 +159,7 @@ class BaseModel(ABC):
         gradient_shots=100,
         epsilon=1,
         seed=None,
+        **kwargs,
     ):
         self.learning_rate = learning_rate
         self.gradient_shots = gradient_shots
@@ -276,8 +277,11 @@ class Model1(BaseModel):
         gradient_shots=100,
         epsilon=1,
         seed=None,
+        **kwargs,
     ):
-        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon, seed)
+        super().__init__(
+            learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
+        )
         self.parameters = np.random.uniform(low=0, high=np.pi, size=9)
         self.circuit_func = circuit1
 
@@ -295,8 +299,11 @@ class Model2(BaseModel):
         gradient_shots=100,
         epsilon=1,
         seed=None,
+        **kwargs,
     ):
-        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon, seed)
+        super().__init__(
+            learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
+        )
         self.parameters = np.random.uniform(low=0, high=np.pi, size=(layers * 4,))
         self.circuit_func = circuit2
         self.circuit_params = [layers]
@@ -315,8 +322,11 @@ class Model3(BaseModel):
         gradient_shots=100,
         epsilon=1,
         seed=None,
+        **kwargs,
     ):
-        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon, seed)
+        super().__init__(
+            learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
+        )
         self.parameters = np.random.uniform(low=0, high=np.pi, size=(2 * layers * 4,))
         self.circuit_func = circuit3
         self.circuit_params = [layers]
