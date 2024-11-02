@@ -158,6 +158,8 @@ class BaseModel(ABC):
         prediction_shots=1000,
         gradient_shots=100,
         epsilon=1,
+        patience = 3,
+        min_delta = 0.2,
         seed=None,
     ):
         self.learning_rate = learning_rate
@@ -220,7 +222,10 @@ class BaseModel(ABC):
         )
         return log_loss(targets, preds, labels=[0, 1, 2])
 
-    def fit(self, epochs, data, targets, val_data=None, val_targets=None):
+    def fit(self, epochs, data, targets, val_data=None, val_targets=None, patience=2, min_delta=0.01):
+        best_val_loss = float("inf")
+        patience_counter = 0
+        
         for i in range(epochs):
             print(f"Epoch {i+1}", end=" ")
             gradient = self.gradient(data, targets)
@@ -235,6 +240,21 @@ class BaseModel(ABC):
                 )
                 self.val_loss.append(val_loss)
                 print(f"Validation loss: {val_loss}")
+
+                # Check for improvement
+                if val_loss > best_val_loss + min_delta:
+                    print(f'Worse! Patience is increased to {patience_counter}')
+                    patience_counter += 1  # Increment patience counter if no improvement
+                else:
+                    best_val_loss = val_loss
+                    patience_counter = 1  # Reset patience counter if there's an improvement 
+
+
+                # Stop early if patience is exhausted
+                if patience_counter == patience:
+                    print("Early stopping triggered.")
+                    break
+                
         return self
 
     def _predict(self, x, shots=1000, parameters=None, probabilities=False):
@@ -295,8 +315,9 @@ class Model2(BaseModel):
         gradient_shots=100,
         epsilon=1,
         seed=None,
+        **kwargs,
     ):
-        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon, seed)
+        super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs)
         self.parameters = np.random.uniform(low=0, high=np.pi, size=(layers * 4,))
         self.circuit_func = circuit2
         self.circuit_params = [layers]
