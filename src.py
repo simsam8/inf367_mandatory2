@@ -131,8 +131,11 @@ def circuit3(features, trainable_parameters=None, layers=2):
             qc.ry(Parameter(f"phi{i}{j}"), j)  # Legger til en justerbar RY-rotasjon.
 
         # For å skape entanglement, legger vi til CX-porter mellom hvert par av qubits.
-        for j in range(0, input_size - 1, 2):
+        for j in range(
+            0, input_size - 1, 2
+        ):  # For å skape entanglement, legger vi til CX-porter mellom hvert par av qubits.
             qc.cx(j, j + 1)
+        qc.cx(1, 2)
         qc.barrier()
 
     # Step 3: Parameter Binding and Measurement
