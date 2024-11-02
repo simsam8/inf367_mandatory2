@@ -129,8 +129,9 @@ def circuit3(features, trainable_parameters, layers):
             qc.ry(Parameter(f"phi{i}{j}"), j)  # Legger til en justerbar RY-rotasjon.
 
         # For å skape entanglement, legger vi til CX-porter mellom hvert par av qubits.
-        for j in range(0, input_size - 1, 2):
+        for j in range(0, input_size - 1, 2):  # For å skape entanglement, legger vi til CX-porter mellom hvert par av qubits.
             qc.cx(j, j + 1)
+        qc.cx(1,2)
         qc.barrier()
 
     # Step 3: Parameter Binding and Measurement
@@ -305,6 +306,6 @@ class Model3(BaseModel):
         epsilon=1,
     ):
         super().__init__(learning_rate, prediction_shots, gradient_shots, epsilon)
-        self.parameters = np.random.uniform(low=0, high=np.pi, size=(layers * 4,))
+        self.parameters = np.random.uniform(low=0, high=np.pi, size=(2*layers * 4,))
         self.circuit_func = circuit3
         self.circuit_params = [layers]
