@@ -210,7 +210,7 @@ class BaseModel(ABC):
                 for params in params_minus
             ]
         )
-        return (losses_plus - losses_minus) / (2 * self.epsilon)
+        return np.sum((losses_plus - losses_minus) / (2 * self.epsilon)) / size
 
     def _loss(self, data, targets, shots, parameters=None):
         if parameters is None:
@@ -230,13 +230,18 @@ class BaseModel(ABC):
         targets,
         val_data=None,
         val_targets=None,
-        patience=2,
+        patience=1,
         min_delta=0.01,
+        max_delta=0.2,
     ):
         best_val_loss = float("inf")
         patience_counter = 0
 
         for i in range(epochs):
+            if patience_counter == patience:
+                print("Early stopping triggered.")
+                break
+
             print(f"Epoch {i+1}", end=" ")
             gradient = self.gradient(data, targets)
             self.parameters -= self.learning_rate * gradient
@@ -244,6 +249,7 @@ class BaseModel(ABC):
             train_loss = self._loss(data, targets, shots=self.prediction_shots)
             print(f"Train loss: {train_loss}", end=" ")
             self.train_loss.append(train_loss)
+
             if val_data is not None and val_targets is not None:
                 val_loss = self._loss(
                     val_data, val_targets, shots=self.prediction_shots
@@ -252,21 +258,15 @@ class BaseModel(ABC):
                 print(f"Validation loss: {val_loss}")
 
                 # Check for improvement
-                if val_loss > best_val_loss + min_delta:
+                if val_loss >= best_val_loss + max_delta:
+                    print("Val loss exceeding max delta. Stopping early!")
+                    break
+                elif val_loss >= best_val_loss + min_delta:
+                    patience_counter += 1
                     print(f"Worse! Patience is increased to {patience_counter}")
-                    patience_counter += (
-                        1  # Increment patience counter if no improvement
-                    )
                 else:
                     best_val_loss = val_loss
-                    patience_counter = (
-                        1  # Reset patience counter if there's an improvement
-                    )
-
-                # Stop early if patience is exhausted
-                if patience_counter == patience:
-                    print("Early stopping triggered.")
-                    break
+                    patience_counter = 0
 
         return self
 
@@ -314,7 +314,7 @@ class Model1(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        self.parameters = np.random.uniform(low=0, high=np.pi, size=9)
+        self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=9)
         self.circuit_func = circuit1
 
 
@@ -336,7 +336,7 @@ class Model2(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        self.parameters = np.random.uniform(low=0, high=np.pi, size=(layers * 4,))
+        self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=(layers * 4,))
         self.circuit_func = circuit2
         self.circuit_params = [layers]
 
@@ -359,6 +359,8 @@ class Model3(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        self.parameters = np.random.uniform(low=0, high=np.pi, size=(2 * layers * 4,))
+        self.parameters = np.random.uniform(
+            low=0, high=2 * np.pi, size=(2 * layers * 4,)
+        )
         self.circuit_func = circuit3
         self.circuit_params = [layers]
