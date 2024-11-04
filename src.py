@@ -39,10 +39,10 @@ def Custom_UnitaryGate2(parameters):
     qc = QuantumCircuit(2)
     qc.cx(0, 1)
     qc.rx(parameters[0], 1)
-    qc.rx(parameters[1], 0)
+    qc.ry(parameters[1], 0)
     qc.rz(parameters[2], 0)
     qc.rz(parameters[3], 1)
-    qc.cx(0, 1)
+    #qc.cx(0, 1)
     return qc.to_gate(label="U2")
 
 
