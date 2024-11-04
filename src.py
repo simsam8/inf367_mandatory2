@@ -210,7 +210,7 @@ class BaseModel(ABC):
                 for params in params_minus
             ]
         )
-        return (losses_plus - losses_minus) / (2 * self.epsilon)
+        return np.sum((losses_plus - losses_minus) / (2 * self.epsilon)) / size
 
     def _loss(self, data, targets, shots, parameters=None):
         if parameters is None:
