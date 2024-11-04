@@ -6,7 +6,7 @@ author:
     - "Khalil Ibrahim"
 ---
 
-Data exploration and pre-processing:
+# Data exploration and pre-processing:
 
 * We found out that we have the following dimension: 
 
@@ -17,25 +17,7 @@ Data exploration and pre-processing:
 
 ![Class distribution of training data](images/class_distribution.png)
 
-
-Loss function
-
-* We use log_loss as out loss function since we have a classifier
-
-
-Gradient Descent
-
-Our gradient descent function is just a standard stochastic gradient descent using
-the finite difference method.
-
-
-Circuits
-
-![Circut 1](images/circuit1.png)
-
-![Circut 2](images/circuit2.png)
-
-![Circut 3](images/circuit3.png)
+# Circuits and models
 
 Choice of QNN
 
@@ -44,14 +26,58 @@ Choice of QNN
     - Convolution Neural Network
     - A variation of Real Amplitudes
 
+![Circut 1](images/circuit1.png)
 
-Underway results:
-- Convolution Neural Network
-    - good inital result, 100% accuracy on type 0, 1 but only 40% on 2
-    - tried to change some gets from rx to rz or ry, reduced the accuracy heavly, but seemed that the learning ended to early
+![Circut 2](images/circuit2.png)
+
+![Circut 3](images/circuit3.png)
+
+# Training
 
 
-Selected model
+## Loss function
+
+We are using cross-entropy loss(log_loss) as we are solving a classification problem.
+
+
+## Gradient Descent
+
+Our gradient descent function is just a standard stochastic gradient descent using
+the finite difference method.
+
+## Early stopping
+
+
+## Model selection
+
+For model selection we implemented random sampling of our hyperparameters.
+Each is trained 4 times on randomly selected values and ran for maximum 20 epochs.
+We select the model with the highest validation accuracy.
+
+| Learning Rate | Epsilon | Layers(Model 2 and 3) |
+| --------------- | --------------- | --------------- |
+| 0.1 to 1 | 0.01 to 1 | 2 to 6 |
+
+
+
+
+
+
+# Results
+
+Chosen parameters:
+
+| Model | Learning Rate | $\epsilon$ |
+| --------------- | --------------- | --------------- |
+| Model1 | 1.397 | 0.473 |
+
+Performance(accuracy):
+
+| Training | Validation | Test |
+| --------------- | --------------- | --------------- |
+| 33.33% | 90.00% | 96.67% |
+
+
 
 
 ![Loss](images/loss.png)
