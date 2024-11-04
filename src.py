@@ -337,6 +337,7 @@ class Model2(BaseModel):
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
         self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=(layers * 4,))
+        self.layers = layers
         self.circuit_func = circuit2
         self.circuit_params = [layers]
 
@@ -362,5 +363,6 @@ class Model3(BaseModel):
         self.parameters = np.random.uniform(
             low=0, high=2 * np.pi, size=(2 * layers * 4,)
         )
+        self.layers = layers
         self.circuit_func = circuit3
         self.circuit_params = [layers]
