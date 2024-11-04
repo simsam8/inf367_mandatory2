@@ -314,7 +314,7 @@ class Model1(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        self.parameters = np.random.uniform(low=0, high=np.pi, size=9)
+        self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=9)
         self.circuit_func = circuit1
 
 
@@ -336,7 +336,7 @@ class Model2(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        self.parameters = np.random.uniform(low=0, high=np.pi, size=(layers * 4,))
+        self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=(layers * 4,))
         self.circuit_func = circuit2
         self.circuit_params = [layers]
 
@@ -359,6 +359,8 @@ class Model3(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        self.parameters = np.random.uniform(low=0, high=np.pi, size=(2 * layers * 4,))
+        self.parameters = np.random.uniform(
+            low=0, high=2 * np.pi, size=(2 * layers * 4,)
+        )
         self.circuit_func = circuit3
         self.circuit_params = [layers]
