@@ -77,7 +77,7 @@ These are the sampling ranges used:
 
 Chosen parameters:
 
-| Model | Learning Rate | $\epsilon$ |
+| Model | Learning Rate | epsilon |
 | --------------- | --------------- | --------------- |
 | Model1 | 1.397 | 0.473 |
 
@@ -103,4 +103,5 @@ Hardships:
 
 * Long computation time 
 * Gradient decent is slow
+- Small dataset, easy to overfit to training data
 
