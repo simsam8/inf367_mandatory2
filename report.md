@@ -19,18 +19,30 @@ author:
 
 # Circuits and models
 
-Choice of QNN
+Each model is derived from the `BaseModel` class.
+The `BaseModel` class implements methods for fitting data, prediction, gradients and 
+measuring circuits. All our circuits are only using 4 qubits.
+Each model implements its own weight initialization, and its corresponding circuit.
 
-* We tried 3 curcuits:
-    - Real amplitudes
-    - Convolution Neural Network
-    - A variation of Real Amplitudes
+![Circuit 1](images/circuit1.png)
 
-![Circut 1](images/circuit1.png)
+## Circuit/Model 2: Real Amplitudes
 
-![Circut 2](images/circuit2.png)
+The second circuit is the implementation of IBM's Real Amplitudes.
+This uses a rotational encoding by Rx gates, and each subsequent layer 
+contains Ry gates and entanglements(cx gates), followed up by full measurement.
 
-![Circut 3](images/circuit3.png)
+
+![Circuit 2: Real Amplitudes](images/circuit2.png)
+
+![Circuit 3](images/circuit3.png)
+
+
+## Measurement and Circuit output
+
+When measuring, we apply the modulus operator on the number of classes.
+Then sum up for each class and divide by the number of shots to get the probability for each class. 
+That becomes the output of the model.
 
 # Training
 
@@ -54,13 +66,11 @@ For model selection we implemented random sampling of our hyperparameters.
 Each is trained 4 times on randomly selected values and ran for maximum 20 epochs.
 We select the model with the highest validation accuracy.
 
+These are the sampling ranges used:
+
 | Learning Rate | Epsilon | Layers(Model 2 and 3) |
 | --------------- | --------------- | --------------- |
 | 0.1 to 1 | 0.01 to 1 | 2 to 6 |
-
-
-
-
 
 
 # Results
