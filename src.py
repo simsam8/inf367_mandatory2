@@ -29,7 +29,7 @@ BACKEND = AerSimulator()
 def Custom_UnitaryGate1(parameters):
     qc = QuantumCircuit(2)
     qc.cx(0, 1)
-    qc.rz(parameters[0], 1)
+    qc.ry(parameters[0], 1)
     qc.ry(parameters[1], 0)
     qc.cx(0, 1)
     return qc.to_gate(label="U1")
@@ -37,49 +37,45 @@ def Custom_UnitaryGate1(parameters):
 
 def Custom_UnitaryGate2(parameters):
     qc = QuantumCircuit(2)
-    qc.cx(0, 1)
-    qc.rx(parameters[0], 1)
+    qc.cy(0, 1)
+    qc.ry(parameters[0], 1)
     qc.ry(parameters[1], 0)
     qc.rz(parameters[2], 0)
     qc.rz(parameters[3], 1)
-    #qc.cx(0, 1)
+    qc.cy(0, 1)
     return qc.to_gate(label="U2")
 
 
 def Custom_UnitaryGateV(parameters):
     qc = QuantumCircuit(1)
-    qc.rx(parameters[0], 0)
-    qc.ry(parameters[1], 0)
-    qc.rz(parameters[2], 0)
+    qc.u(parameters[0], parameters[1], parameters[2], 0)
     return qc.to_gate(label="V")
 
 
 def circuit1(features, parameters=None):
     qc_1 = QuantumCircuit(4, 4)
+
+    #encoding
     for i in range(4):
         qc_1.rx(qubit=i, theta=features[i])
     qc_1.barrier()
 
-    # qc_1_unitary_V2 = UnitaryGate([[1,0], [0,1]])
     params = [Parameter(f"{i}") for i in range(9)]
-    qc_1.append(Custom_UnitaryGate1([params[0], params[1]]), [3, 2])
-    qc_1.append(Custom_UnitaryGate1([params[0], params[1]]), [1, 0])
+
+    #The trainable gates
+    for i in range(qc_1.num_qubits/(2)):
+        qc_1.append(Custom_UnitaryGate1([params[0], params[1]]), [1+2*i, 2*i])
+    qc_1.barrier()
+    for i in range(qc_1.num_qubits/(2)):
+        qc_1.measure(qubit=i*2, cbit=i*2)
+        qc_1.append(Custom_UnitaryGateV([params[2], params[3], params[4]]).control(1), [i*2, 1+i*2])
     qc_1.barrier()
 
-    qc_1.measure(qubit=2, cbit=2)
-    qc_1.append(
-        Custom_UnitaryGateV([params[2], params[3], params[4]]).control(1), [2, 3]
-    )
-
-    qc_1.measure(qubit=0, cbit=0)
-    qc_1.append(
-        Custom_UnitaryGateV([params[2], params[3], params[4]]).control(1), [0, 1]
-    )
-
-    qc_1.barrier()
+    #Final gate
     qc_1.append(
         Custom_UnitaryGate2([params[5], params[6], params[7], params[8]]), [3, 1]
     )
+    #Measure the output qubits
     qc_1.measure(qubit=1, cbit=1)
     qc_1.measure(qubit=3, cbit=3)
 
@@ -172,7 +168,7 @@ class BaseModel(ABC):
         self.seed = seed
 
         self.pass_manager = generate_preset_pass_manager(
-            backend=BACKEND, optimization_level=1
+            backend=BACKEND, optimization_level=1, seed_transpiler=seed
         )
 
         self.circuit_params = []
@@ -314,7 +310,7 @@ class Model1(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=9)
+        self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=(9), seed=seed)
         self.circuit_func = circuit1
 
 
@@ -336,7 +332,7 @@ class Model2(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=(layers * 4,))
+        self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=(layers * 4,), seed=seed)
         self.circuit_func = circuit2
         self.circuit_params = [layers]
 
