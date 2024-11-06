@@ -56,6 +56,7 @@ We are using cross-entropy loss(log_loss) as we are solving a classification pro
 
 Our gradient descent function is just a standard stochastic gradient descent using
 the finite difference method.
+For each gradient calculation we use 1000 shots. 
 
 ## Early stopping
 
@@ -95,13 +96,13 @@ Performance(accuracy):
 ![Confusion matrix](images/confusion_matrix.png)
 
 
-What we learned:
+## Observations
 
-
-
-Hardships:
-
-* Long computation time 
-* Gradient decent is slow
-- Small dataset, easy to overfit to training data
+There are a few observations which affect our results:
+- The dataset is small, so it is easy to overfit to training data.
+    Additionally, if the model underfits it sometimes gets good validation 
+    results as the sample size is small.
+- Long training times due to gradient calculations, as we need
+    to calculate the loss $2n$ times the number of parameters 
+    a models has.
 
