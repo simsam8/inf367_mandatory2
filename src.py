@@ -310,7 +310,7 @@ class Model1(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        np.random.seed(seed)
+        # np.random.seed(seed)
         self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=9)
         self.circuit_func = circuit1
 
@@ -333,7 +333,7 @@ class Model2(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        np.random.seed(seed)
+        # np.random.seed(seed)
         self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=(layers * 4,))
         self.layers = layers
         self.circuit_func = circuit2
@@ -358,7 +358,7 @@ class Model3(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        np.random.seed(seed)
+        # np.random.seed(seed)
         self.parameters = np.random.uniform(
             low=0, high=2 * np.pi, size=(2 * layers * 4,)
         )
