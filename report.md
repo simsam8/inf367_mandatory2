@@ -47,13 +47,22 @@ We were not able to get this model to hit consistently 96% test accuracy, but it
 The second circuit is the implementation of IBM's Real Amplitudes.
 This uses a rotational encoding by Rx gates, and each subsequent layer 
 contains Ry gates and entanglements(cx gates), followed up by full measurement.
+We thought it would be interesting to see how this circuit compared to our own circuits 
+and use it as some sort of baseline.
 
 
 ![Circuit 2: Real Amplitudes](images/circuit2.png)
 
 ## Circuit/Model 3:
 
-In this circuit, I have created a variation of the "Real Amplitudes" ansatz with several customizations to enhance data representation and entanglement. I use Hadamard gates and $R_z$ rotations for feature encoding on each qubit, ensuring that input data is represented in the quantum states. In each layer, I’ve added both $R_x$ and $R_y$ rotations with adjustable parameters on each qubit, providing increased flexibility. Additionally, I expanded the entanglement pattern by including multiple CX gates between adjacent qubits, as well as an extra CX gate between qubits 1 and 2 in each layer. These modifications make the circuit more expressive and better suited to capture complex patterns in the data.
+In this circuit we have created a variation of the "Real Amplitudes" ansatz with several customizations
+to enhance data representation and entanglement.
+We use Hadamard gates and $R_z$ rotations for feature encoding on each qubit,
+ensuring that input data is represented in the quantum states.
+In each layer, We have added both $R_x$ and $R_y$ rotations with adjustable parameters on each qubit,
+providing increased flexibility. Additionally, we expanded the entanglement pattern by including
+multiple CX gates between adjacent qubits, as well as an extra CX gate between qubits 1 and 2 in each layer.
+These modifications make the circuit more expressive and better suited to capture complex patterns in the data.
 
 ![Circuit 3](images/circuit3.png)
 
@@ -65,6 +74,7 @@ Then sum up for each class and divide by the number of shots to get the probabil
 That becomes the output of the model.
 
 
+\newpage
 
 # Training
 
@@ -81,35 +91,39 @@ the finite difference method.
 For each gradient calculation we use 1000 shots. 
 
 ## Early stopping
-I implemented early stopping to prevent overfitting and save computation time by stopping training when validation loss improvement stagnates. The mechanism uses a patience counter to allow minor fluctuations, incrementing if the validation loss doesn’t improve by min_delta within a set number of epochs. If the loss worsens by more than max_delta, training stops immediately. 
+We implemented early stopping to prevent overfitting and save computation time by 
+stopping training when validation loss improvement stagnates.
+The mechanism uses a patience counter to allow minor fluctuations,
+incrementing if the validation loss doesn’t improve by min_delta within a set number of epochs.
+If the loss worsens by more than max_delta, training stops immediately. 
 
-## Model selection
+## Model training and selection
 
-For model selection we implemented random sampling of our hyperparameters.
-Each is trained 4 times on randomly selected values and ran for maximum 20 epochs.
-We select the model with the highest validation accuracy.
+The training process is rather simple. We define some model and hyperparameter combinations,
+and train each combination for a maximum of 20 epochs. Early stopping was set 
+with a patience of 2.
+For selection, we choose the model with the highest validation accuracy.
 
-These are the sampling ranges used:
 
-| Learning Rate | Epsilon | Layers(Model 2 and 3) |
-| --------------- | --------------- | --------------- |
-| 0.1 to 1 | 0.01 to 1 | 2 to 6 |
-
+\newpage
 
 # Results
 
 Chosen parameters:
 
-| Model | Learning Rate | epsilon |
-| --------------- | --------------- | --------------- |
-| Model1 | 1.397 | 0.473 |
+| Model | Learning Rate | epsilon | layers |
+| --------------- | --------------- | --------------- | --|
+| Model2 | 1.2 | 0.7 | 2 |
 
 Performance(accuracy):
 
 | Training | Validation | Test |
 | --------------- | --------------- | --------------- |
-| 33.33% | 90.00% | 96.67% |
+| 23.81% | 59.09% | 43.48%  |
 
+
+The chosen model does not perform very well. It seems that we may have been too strict 
+with our early stopping, and that the model could have trained for longer.
 
 
 
@@ -117,14 +131,19 @@ Performance(accuracy):
 
 ![Confusion matrix](images/confusion_matrix.png)
 
+\newpage
 
-## Observations
+## Observations and Conclusion
 
 There are a few observations which affect our results:
+
 - The dataset is small, so it is easy to overfit to training data.
     Additionally, if the model underfits it sometimes gets good validation 
     results as the sample size is small.
 - Long training times due to gradient calculations, as we need
     to calculate the loss $2n$ times the number of parameters 
     a models has.
-
+- The combination of learning rate and epsilon had a big impact on model performance.
+    Do small changes in either of them had widely different results.
+- Due to the nature of quantum circuits, we sometimes got very different results even
+    when using the same hyperparameters. 
