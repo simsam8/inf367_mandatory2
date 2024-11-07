@@ -63,10 +63,10 @@ def circuit1(features, parameters=None):
     params = [Parameter(f"{i}") for i in range(9)]
 
     # The trainable gates
-    for i in range(qc_1.num_qubits / (2)):
+    for i in range(qc_1.num_qubits // 2):
         qc_1.append(Custom_UnitaryGate1([params[0], params[1]]), [1 + 2 * i, 2 * i])
     qc_1.barrier()
-    for i in range(qc_1.num_qubits / (2)):
+    for i in range(qc_1.num_qubits // 2):
         qc_1.measure(qubit=i * 2, cbit=i * 2)
         qc_1.append(
             Custom_UnitaryGateV([params[2], params[3], params[4]]).control(1),
@@ -310,7 +310,6 @@ class Model1(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        np.random.seed(seed)
         self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=9)
         self.circuit_func = circuit1
 
@@ -333,7 +332,6 @@ class Model2(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        np.random.seed(seed)
         self.parameters = np.random.uniform(low=0, high=2 * np.pi, size=(layers * 4,))
         self.layers = layers
         self.circuit_func = circuit2
@@ -358,7 +356,6 @@ class Model3(BaseModel):
         super().__init__(
             learning_rate, prediction_shots, gradient_shots, epsilon, seed, **kwargs
         )
-        np.random.seed(seed)
         self.parameters = np.random.uniform(
             low=0, high=2 * np.pi, size=(2 * layers * 4,)
         )
