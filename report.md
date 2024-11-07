@@ -53,6 +53,8 @@ contains Ry gates and entanglements(cx gates), followed up by full measurement.
 
 ## Circuit/Model 3:
 
+In this circuit, I have created a variation of the "Real Amplitudes" ansatz with several customizations to enhance data representation and entanglement. I use Hadamard gates and $R_z$ rotations for feature encoding on each qubit, ensuring that input data is represented in the quantum states. In each layer, I’ve added both $R_x$ and $R_y$ rotations with adjustable parameters on each qubit, providing increased flexibility. Additionally, I expanded the entanglement pattern by including multiple CX gates between adjacent qubits, as well as an extra CX gate between qubits 1 and 2 in each layer. These modifications make the circuit more expressive and better suited to capture complex patterns in the data.
+
 ![Circuit 3](images/circuit3.png)
 
 
@@ -61,6 +63,8 @@ contains Ry gates and entanglements(cx gates), followed up by full measurement.
 When measuring, we apply the modulus operator on the number of classes.
 Then sum up for each class and divide by the number of shots to get the probability for each class. 
 That becomes the output of the model.
+
+
 
 # Training
 
@@ -77,7 +81,7 @@ the finite difference method.
 For each gradient calculation we use 1000 shots. 
 
 ## Early stopping
-
+I implemented early stopping to prevent overfitting and save computation time by stopping training when validation loss improvement stagnates. The mechanism uses a patience counter to allow minor fluctuations, incrementing if the validation loss doesn’t improve by min_delta within a set number of epochs. If the loss worsens by more than max_delta, training stops immediately. 
 
 ## Model selection
 
