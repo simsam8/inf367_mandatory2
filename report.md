@@ -32,7 +32,7 @@ Each model implements its own weight initialization, and its corresponding circu
 
 ## Circuit/Model 1: Quantum Convolutional Neural Network
 
-The circuit has its inspirations from a traditional neural network. The unitary gates is somewhat simple, we could’ve used many more gates to make the model more complex, but since we don’t have much experience we went with “simple” unitary gates. Under the project we have tried to change between rz, rx, ry in this circuit, even tried to use u3 gates. 
+The circuit has its inspirations from a traditional neural network. The unitary gates is somewhat simple, we could’ve used many more gates to make the model more complex, but since we don’t have much experience we went with “simple” unitary gates. 
 
 Under the project we have tried to change between rz, rx, ry in this circuit, even tried to use u3 gates. The gates we think work, we get an ok result. The changes in gates didn’t feel like it impacted that much since the bigger elephant in the room was the parameters. 
 
@@ -50,6 +50,8 @@ contains Ry gates and entanglements(cx gates), followed up by full measurement.
 
 
 ![Circuit 2: Real Amplitudes](images/circuit2.png)
+
+## Circuit/Model 3:
 
 ![Circuit 3](images/circuit3.png)
 
